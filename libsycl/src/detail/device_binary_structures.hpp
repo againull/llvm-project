@@ -9,7 +9,27 @@
 #ifndef _LIBSYCL_DEVICE_BINARY_STRUCTURES
 #define _LIBSYCL_DEVICE_BINARY_STRUCTURES
 
+#include "llvm/BinaryFormat/Offload.h"
 #include <cstdint>
+
+// Make offload types available without namespace qualification
+using llvm::offload::OffloadKind;
+using llvm::offload::ImageKind;
+using llvm::offload::EntryTy;
+using llvm::offload::OFK_None;
+using llvm::offload::OFK_OpenMP;
+using llvm::offload::OFK_Cuda;
+using llvm::offload::OFK_HIP;
+using llvm::offload::OFK_SYCL;
+using llvm::offload::OFK_LAST;
+using llvm::offload::IMG_None;
+using llvm::offload::IMG_Object;
+using llvm::offload::IMG_Bitcode;
+using llvm::offload::IMG_Cubin;
+using llvm::offload::IMG_Fatbinary;
+using llvm::offload::IMG_PTX;
+using llvm::offload::IMG_SPIRV;
+using llvm::offload::IMG_LAST;
 
 /// Target identification strings.
 ///
@@ -22,56 +42,6 @@
 /// SPIR-V with 64-bit pointers.
 #define _LIBSYCL_DEVICE_BINARY_TARGET_SPIRV64 "spirv64-unknown-unknown"
 
-// This is a replica of the EntryTy data structure in
-// llvm/include/llvm/Frontend/Offloading/Utility.h.
-struct EntryTy {
-  /// Reserved bytes used to detect an older version of the struct, always zero.
-  uint64_t Reserved = 0x0;
-  /// The current version of the struct for runtime forward compatibility.
-  uint16_t Version = 0x1;
-  /// The expected consumer of this entry, e.g. SYCL or OpenMP.
-  /// llvm::object::OffloadKind
-  uint16_t Kind;
-  /// Flags associated with the global.
-  uint32_t Flags;
-  /// The address of the global to be registered by the runtime.
-  void *Address;
-  /// The name of the symbol in the device image.
-  char *SymbolName;
-  /// The number of bytes the symbol takes.
-  uint64_t Size;
-  /// Extra generic data used to register this entry.
-  uint64_t Data;
-  /// An extra pointer, usually null.
-  void *AuxAddr;
-};
-
-// TODO: would be nice to include it from llvm/Object. It doesn't work now since
-// I have to link LLVMObject to do that (linker error otherwise).
-// Copy of llvm::object::OffloadKind.
-/// The producer of the associated offloading image.
-enum OffloadKind : uint16_t {
-  OFK_None = 0,
-  OFK_OpenMP = (1 << 0),
-  OFK_Cuda = (1 << 1),
-  OFK_HIP = (1 << 2),
-  OFK_SYCL = (1 << 3),
-  OFK_LAST = (1 << 4),
-};
-
-// Copy of llvm::object::ImageKind.
-/// The type of contents the offloading image contains.
-enum ImageKind : uint16_t {
-  IMG_None = 0,
-  IMG_Object,
-  IMG_Bitcode,
-  IMG_Cubin,
-  IMG_Fatbinary,
-  IMG_PTX,
-  IMG_SPIRV,
-  IMG_LAST,
-};
-
 /// Device binary descriptor version supported by this library.
 static const uint16_t _LIBSYCL_SUPPORTED_DEVICE_BINARY_VERSION = 3;
 
@@ -80,10 +50,10 @@ static const uint16_t _LIBSYCL_SUPPORTED_DEVICE_BINARY_VERSION = 3;
 ///  clang-offload-wrapper tool when their `Version` field match.
 struct __sycl_tgt_device_image {
   uint16_t Version;
-  /// The type of offload model the binary employs. See `OffloadKind`. Only
-  /// OFK_SYCL is supported by libsycl.
+  /// The type of offload model the binary employs. See llvm::offload::OffloadKind.
+  /// Only OFK_SYCL is supported by libsycl.
   uint8_t OffloadKind;
-  /// Format of the binary data, see `ImageKind`.
+  /// Format of the binary data, see llvm::offload::ImageKind.
   uint8_t ImageFormat;
   /// A null-terminated string representation of the device's target
   /// architecture. Must hold one of _LIBSYCL_DEVICE_BINARY_TARGET_* values.

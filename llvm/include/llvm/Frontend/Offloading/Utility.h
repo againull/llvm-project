@@ -15,6 +15,7 @@
 
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/BinaryFormat/Offload.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Object/OffloadBinary.h"
 #include "llvm/Support/Error.h"
@@ -23,28 +24,8 @@
 namespace llvm {
 namespace offloading {
 
-/// This is the record of an object that just be registered with the offloading
-/// runtime.
-struct EntryTy {
-  /// Reserved bytes used to detect an older version of the struct, always zero.
-  uint64_t Reserved = 0x0;
-  /// The current version of the struct for runtime forward compatibility.
-  uint16_t Version = 0x1;
-  /// The expected consumer of this entry, e.g. CUDA or OpenMP.
-  uint16_t Kind;
-  /// Flags associated with the global.
-  uint32_t Flags;
-  /// The address of the global to be registered by the runtime.
-  void *Address;
-  /// The name of the symbol in the device image.
-  char *SymbolName;
-  /// The number of bytes the symbol takes.
-  uint64_t Size;
-  /// Extra generic data used to register this entry.
-  uint64_t Data;
-  /// An extra pointer, usually null.
-  void *AuxAddr;
-};
+// Re-export EntryTy from BinaryFormat for backward compatibility.
+using EntryTy = llvm::offload::EntryTy;
 
 /// Offloading entry flags for CUDA / HIP. The first three bits indicate the
 /// type of entry while the others are a bit field for additional information.

@@ -89,7 +89,7 @@ static Error wrapImages(ArrayRef<ArrayRef<char>> BuffersToWrap) {
       return Err;
     break;
   default:
-    return createStringError(getOffloadKindName(Kind) +
+    return createStringError(object::getOffloadKindName(Kind) +
                              " wrapping is not supported");
   }
 

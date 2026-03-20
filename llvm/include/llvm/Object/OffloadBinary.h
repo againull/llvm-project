@@ -12,6 +12,10 @@
 // thin wrapper around the image itself. If this format becomes sufficiently
 // complex it should be moved to a standard binary format like msgpack or ELF.
 //
+// Type definitions (OffloadKind, ImageKind) are provided by
+// llvm/BinaryFormat/Offload.h, which can be used independently without linking
+// against the Object library.
+//
 //===----------------------------------------------------------------------===//
 
 #ifndef LLVM_OBJECT_OFFLOADBINARY_H
@@ -20,6 +24,7 @@
 #include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/BinaryFormat/Offload.h"
 #include "llvm/Object/Binary.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Error.h"
@@ -30,27 +35,26 @@ namespace llvm {
 
 namespace object {
 
-/// The producer of the associated offloading image.
-enum OffloadKind : uint16_t {
-  OFK_None = 0,
-  OFK_OpenMP = (1 << 0),
-  OFK_Cuda = (1 << 1),
-  OFK_HIP = (1 << 2),
-  OFK_SYCL = (1 << 3),
-  OFK_LAST = (1 << 4),
-};
+// Re-export types from BinaryFormat for backward compatibility.
+using OffloadKind = llvm::offload::OffloadKind;
+using ImageKind = llvm::offload::ImageKind;
 
-/// The type of contents the offloading image contains.
-enum ImageKind : uint16_t {
-  IMG_None = 0,
-  IMG_Object,
-  IMG_Bitcode,
-  IMG_Cubin,
-  IMG_Fatbinary,
-  IMG_PTX,
-  IMG_SPIRV,
-  IMG_LAST,
-};
+// Re-export enum values for unqualified access.
+using llvm::offload::OFK_None;
+using llvm::offload::OFK_OpenMP;
+using llvm::offload::OFK_Cuda;
+using llvm::offload::OFK_HIP;
+using llvm::offload::OFK_SYCL;
+using llvm::offload::OFK_LAST;
+
+using llvm::offload::IMG_None;
+using llvm::offload::IMG_Object;
+using llvm::offload::IMG_Bitcode;
+using llvm::offload::IMG_Cubin;
+using llvm::offload::IMG_Fatbinary;
+using llvm::offload::IMG_PTX;
+using llvm::offload::IMG_SPIRV;
+using llvm::offload::IMG_LAST;
 
 /// Flags associated with the Entry.
 enum OffloadEntryFlags : uint32_t {
