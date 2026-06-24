@@ -21,8 +21,6 @@ _LIBSYCL_BEGIN_NAMESPACE_SYCL
 
 namespace detail {
 
-bool PlatformImpl::rediscoverIfEmpty = false;
-
 PlatformImpl &PlatformImpl::getPlatformImpl(ol_platform_handle_t Platform) {
   auto &PlatformCache = getPlatformCache();
   for (auto &PlatImpl : PlatformCache) {
@@ -38,7 +36,7 @@ PlatformImpl &PlatformImpl::getPlatformImpl(ol_platform_handle_t Platform) {
 }
 
 const std::vector<PlatformImplUPtr> &PlatformImpl::getPlatforms() {
-  static auto InitPlatforms = []() {
+  [[maybe_unused]] static auto InitPlatformsOnce = []() {
     discoverOffloadDevices();
 
     registerStaticVarShutdownHandler();
@@ -51,19 +49,12 @@ const std::vector<PlatformImplUPtr> &PlatformImpl::getPlatforms() {
             OffloadPlatform, PlatformIndex++, PrivateTag{}));
       }
     }
-  };
-
-  [[maybe_unused]] static auto InitPlatformsOnce = []() {
-    callAndThrow(olInit, nullptr);
-    InitPlatforms();
     return true;
   }();
-  auto &PlatformCache = getPlatformCache();
-  if (rediscoverIfEmpty && PlatformCache.empty())
-    InitPlatforms();
-
-  return PlatformCache;
+  return getPlatformCache();
 }
+
+PlatformImpl::PlatformImpl(backend Backend, ForTestingTag) : MBackend(Backend) {}
 
 PlatformImpl::PlatformImpl(ol_platform_handle_t Platform, size_t PlatformIndex,
                            PrivateTag)

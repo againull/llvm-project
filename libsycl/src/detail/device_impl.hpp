@@ -36,6 +36,12 @@ class DeviceImpl {
   friend class PlatformImpl;
 
 public:
+  // Tag used by unit tests to construct a DeviceImpl with a mocked offload
+  // handle and a test-only PlatformImpl, bypassing platform discovery.
+  struct ForTestingTag {
+    explicit ForTestingTag() = default;
+  };
+
   /// Constructs a SYCL device instance using the provided
   /// offload device instance.
   ///
@@ -44,6 +50,12 @@ public:
   /// All device impls must be created in corresponding platform ctor.
   explicit DeviceImpl(ol_device_handle_t Device, PlatformImpl &Platform,
                       PrivateTag)
+      : MOffloadDevice(Device), MPlatform(Platform) {}
+
+  /// Test-only constructor: same shape as the production ctor, but reachable
+  /// from unit-test code without going through PlatformImpl::getPlatforms().
+  explicit DeviceImpl(ol_device_handle_t Device, PlatformImpl &Platform,
+                      ForTestingTag)
       : MOffloadDevice(Device), MPlatform(Platform) {}
 
   ~DeviceImpl() = default;

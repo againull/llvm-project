@@ -32,10 +32,6 @@
 
 _LIBSYCL_BEGIN_NAMESPACE_SYCL
 
-namespace unittests {
-struct UnittestsHelper;
-}
-
 namespace detail {
 
 class DeviceImpl;
@@ -53,6 +49,12 @@ class PlatformImpl {
   };
 
 public:
+  // Tag used by unit tests to construct a minimal PlatformImpl without going
+  // through liboffload device discovery. See the corresponding ctor below.
+  struct ForTestingTag {
+    explicit ForTestingTag() = default;
+  };
+
   /// Constructs PlatformImpl from a platform handle.
   ///
   /// \param Platform is a raw offload library handle representing platform.
@@ -60,6 +62,12 @@ public:
   /// indexing in device selector).
   /// All platform impls are created during first getPlatforms() call.
   PlatformImpl(ol_platform_handle_t Platform, size_t PlatformIndex, PrivateTag);
+
+  /// Test-only constructor: builds a PlatformImpl with the given backend
+  /// without consulting the offload topology cache and without populating
+  /// MRootDevices. Tests construct DeviceImpl objects directly and pass this
+  /// platform to them.
+  PlatformImpl(backend Backend, ForTestingTag);
 
   ~PlatformImpl() = default;
 
@@ -151,13 +159,6 @@ private:
   std::vector<DeviceImplUPtr> MRootDevices;
 
   std::shared_ptr<ContextImpl> MDefaultContext;
-
-  // Single initialization of platforms and devices doesn't allow to implement
-  // unittests for this behavior. This flag and friend class allows to force
-  // device & platform rediscovery at the next getPlatforms() call if the cache
-  // is empty.
-  static bool rediscoverIfEmpty;
-  friend struct ::sycl::unittests::UnittestsHelper;
 };
 
 } // namespace detail
